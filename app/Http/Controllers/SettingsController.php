@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use App\Models\Tenant;
 
 class SettingsController extends Controller
 {
@@ -13,6 +14,14 @@ class SettingsController extends Controller
     {
         $user = request()->user('sanctum') ?? Auth::user() ?? Auth::guard('sanctum')->user();
         return $user && isset($user->tenant_id) ? (int) $user->tenant_id : null;
+    }
+
+    private function tenantName(): string
+    {
+        $tenantId = $this->tenantId();
+        if (!$tenantId) return '';
+
+        return (string) (Tenant::where('id', $tenantId)->value('name') ?? '');
     }
 
     private function tenantSettingsDir(): ?string
@@ -228,13 +237,14 @@ class SettingsController extends Controller
 
     private function getGeneralData(): array
     {
+        $tenantName = $this->tenantName();
         $data = $this->readJson('general.json', [
-            'institution_name' => 'QServe',
+            'institution_name' => $tenantName,
             'logo_url' => '/assets/logo-pln.png',
         ]);
 
         return [
-            'institutionName' => $data['institution_name'] ?? 'QServe',
+            'institutionName' => $data['institution_name'] ?? $tenantName,
             'logoUrl' => $data['logo_url'] ?? '',
         ];
     }
@@ -255,7 +265,7 @@ class SettingsController extends Controller
         ]);
 
         $current = $this->readJson('general.json', [
-            'institution_name' => 'QServe',
+            'institution_name' => $this->tenantName(),
             'logo_url' => '/assets/logo-pln.png',
         ]);
 
@@ -306,7 +316,7 @@ class SettingsController extends Controller
             $file->storeAs($brandingDir, 'logo.' . $ext, 'public');
 
             $current = $this->readJson('general.json', [
-                'institution_name' => 'QServe',
+                'institution_name' => $this->tenantName(),
                 'logo_url' => '/assets/logo-pln.png',
             ]);
             $current['logo_url'] = url('storage/' . $brandingDir . '/logo.' . $ext);
