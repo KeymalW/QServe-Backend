@@ -40,7 +40,10 @@ class NormalizeLegacyQserveGeneralName extends Migration
         if (!is_file($path)) return;
 
         $data = json_decode((string) file_get_contents($path), true);
-        if (!is_array($data) || ($data['institution_name'] ?? null) !== 'QServe') return;
+        if (!is_array($data)) return;
+
+        $current = $data['institution_name'] ?? null;
+        if ($current !== 'QServe' && !(is_string($current) && trim($current) === '')) return;
 
         $data['institution_name'] = $tenantName;
         file_put_contents($path, json_encode($data));

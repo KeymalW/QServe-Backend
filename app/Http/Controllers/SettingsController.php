@@ -243,8 +243,13 @@ class SettingsController extends Controller
             'logo_url' => '/assets/logo-pln.png',
         ]);
 
+        $institutionName = $data['institution_name'] ?? $tenantName;
+        if (!is_string($institutionName) || trim($institutionName) === '') {
+            $institutionName = $tenantName;
+        }
+
         return [
-            'institutionName' => $data['institution_name'] ?? $tenantName,
+            'institutionName' => $institutionName,
             'logoUrl' => $data['logo_url'] ?? '',
         ];
     }
