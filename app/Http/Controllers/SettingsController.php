@@ -19,9 +19,15 @@ class SettingsController extends Controller
     private function tenantName(): string
     {
         $tenantId = $this->tenantId();
-        if (!$tenantId) return '';
+        $query = Tenant::query();
 
-        return (string) (Tenant::where('id', $tenantId)->value('name') ?? '');
+        if ($tenantId) {
+            $query->where('id', $tenantId);
+        } else {
+            $query->where('slug', 'qserve-default');
+        }
+
+        return (string) ($query->value('name') ?? '');
     }
 
     private function tenantSettingsDir(): ?string
